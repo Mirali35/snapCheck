@@ -48,6 +48,7 @@ class _StartTripScreenState extends State<StartTripScreen> {
   XFile? imageFile;
   Position? currentPosition;
   bool _isLoading = false;
+  bool _isSubmitting = false; // New loading state for submit button
 
   final _formKey = GlobalKey<FormState>();
   @override
@@ -250,6 +251,7 @@ class _StartTripScreenState extends State<StartTripScreen> {
     }
     setState(() {
       _isLoading = true;
+      _isSubmitting = true; // Set submitting state for button
     });
     // Base form data
     try {
@@ -274,6 +276,9 @@ class _StartTripScreenState extends State<StartTripScreen> {
         }
       }
       if (imageFile == null) {
+        setState(() {
+          _isSubmitting = false; // Reset submitting state
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("File not found: ${imageFile!.path}")),
         );
@@ -286,6 +291,7 @@ class _StartTripScreenState extends State<StartTripScreen> {
           .postDayLog(tokenData!, compressedXFile, formData);
       setState(() {
         _isLoading = false;
+        // Keep _isSubmitting true until background process starts
       });
       if (postDayLogsResponseModel != null &&
           postDayLogsResponseModel.success == true) {
@@ -320,6 +326,10 @@ class _StartTripScreenState extends State<StartTripScreen> {
           debugPrint(
             "locationService.isTracking ${locationService.isTracking}",
           );
+          // Background process already running, remove loading from button
+          setState(() {
+            _isSubmitting = false;
+          });
         } else {
           await SharedPrefHelper.saveActiveDayLogId(
             postDayLogsResponseModel.data!.id.toString(),
@@ -330,8 +340,16 @@ class _StartTripScreenState extends State<StartTripScreen> {
           );
           if (success) {
             debugPrint('Location tracking started successfully');
+            // Background process started successfully, remove loading from button
+            setState(() {
+              _isSubmitting = false;
+            });
           } else {
             debugPrint('Failed to start tracking - check permissions');
+            // Background process failed, remove loading from button
+            setState(() {
+              _isSubmitting = false;
+            });
           }
         }
 
@@ -341,6 +359,10 @@ class _StartTripScreenState extends State<StartTripScreen> {
         if (!mounted) {
           return;
         }
+        // API call failed, remove loading from button
+        setState(() {
+          _isSubmitting = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(postDayLogsResponseModel.message!)),
         );
@@ -348,6 +370,7 @@ class _StartTripScreenState extends State<StartTripScreen> {
     } catch (e) {
       setState(() {
         _isLoading = false;
+        _isSubmitting = false; // Reset submitting state on error
       });
       debugPrint("_submitForm ${e.toString()}");
       ScaffoldMessenger.of(
@@ -656,8 +679,25 @@ class _StartTripScreenState extends State<StartTripScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _submitForm,
-                        child: const Text('Submit & Start'),
+                        onPressed: _isSubmitting ? null : _submitForm,
+                        child:
+                            _isSubmitting
+                                ? Row(
+                                  children: [
+                                    const Text('Please Wait'),
+                                    SizedBox(
+                                      height: 24,
+                                      width: 24,
+                                      child: CircularProgressIndicator(
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                                : const Text('Submit & Start'),
                       ),
                     ),
                   ],
