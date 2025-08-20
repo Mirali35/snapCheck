@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:snap_check/models/party_users_data_model.dart';
@@ -15,6 +14,7 @@ import 'package:snap_check/services/share_pref.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:snap_check/screens/camera/back_only_camera_screen.dart';
 
 class StartTripScreen extends StatefulWidget {
   const StartTripScreen({super.key});
@@ -175,10 +175,12 @@ class _StartTripScreenState extends State<StartTripScreen> {
   }
 
   Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.camera);
-    if (picked != null) {
-      setState(() => imageFile = picked);
+    // Open custom back-only camera, with visible but disabled switch
+    final result = await Navigator.of(context).push<XFile?>(
+      MaterialPageRoute(builder: (_) => const BackOnlyCameraScreen()),
+    );
+    if (result != null) {
+      setState(() => imageFile = result);
     }
   }
 
@@ -322,11 +324,12 @@ class _StartTripScreenState extends State<StartTripScreen> {
         final locationService = NewLocationService();
 
         // Start tracking
+        bool backgroundStarted = false;
         if (locationService.isTracking) {
           debugPrint(
             "locationService.isTracking ${locationService.isTracking}",
           );
-          // Background process already running, remove loading from button
+          backgroundStarted = true;
           setState(() {
             _isSubmitting = false;
           });
@@ -338,22 +341,19 @@ class _StartTripScreenState extends State<StartTripScreen> {
             token: tokenData,
             dayLogId: "${postDayLogsResponseModel.data!.id}",
           );
+          backgroundStarted = success;
           if (success) {
             debugPrint('Location tracking started successfully');
-            // Background process started successfully, remove loading from button
-            setState(() {
-              _isSubmitting = false;
-            });
           } else {
             debugPrint('Failed to start tracking - check permissions');
-            // Background process failed, remove loading from button
-            setState(() {
-              _isSubmitting = false;
-            });
           }
+          setState(() {
+            _isSubmitting = false;
+          });
         }
 
-        Navigator.pop(context, true); // Sends 'true' back to the caller
+        // Only report success to caller if background actually started
+        Navigator.pop(context, backgroundStarted);
       } else if (postDayLogsResponseModel != null &&
           postDayLogsResponseModel.success == false) {
         if (!mounted) {
@@ -680,15 +680,22 @@ class _StartTripScreenState extends State<StartTripScreen> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: _isSubmitting ? null : _submitForm,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
                         child:
                             _isSubmitting
                                 ? Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
                                     const Text('Please Wait'),
-                                    SizedBox(
-                                      height: 24,
-                                      width: 24,
+                                    const SizedBox(width: 10),
+                                    const SizedBox(
+                                      height: 20,
+                                      width: 20,
                                       child: CircularProgressIndicator(
+                                        strokeWidth: 2,
                                         valueColor:
                                             AlwaysStoppedAnimation<Color>(
                                               Colors.white,

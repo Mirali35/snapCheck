@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.example.snap_check"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
 
