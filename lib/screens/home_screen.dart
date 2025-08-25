@@ -183,9 +183,11 @@ class _HomeScreenState extends State<HomeScreen> {
           if (flag == true) {
             _fetchActiveDayLog();
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+              SnackBar(
                 content: Text('DAY END SUCCESSFULLY'),
                 duration: Duration(seconds: 5),
+                behavior: SnackBarBehavior.floating,
+                margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 2 - 30),
               ),
             );
           }
@@ -386,16 +388,20 @@ class _HomeScreenState extends State<HomeScreen> {
       Navigator.pushNamed(context, routeName).then((result) {
         if (routeName == '/starTrip' && result == true) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text('DAY START SUCCESSFULLY'),
               duration: Duration(seconds: 15),
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 2 - 30),
             ),
           );
         } else if (routeName == '/checkoutDayLog' && result == true) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text('DAY END SUCCESSFULLY'),
               duration: Duration(seconds: 5),
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 2 - 30),
             ),
           );
         }
