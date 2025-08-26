@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart' show Fluttertoast, Toast, ToastGravity;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:snap_check/constants/constants.dart';
 import 'package:snap_check/models/active_day_log_data_model.dart';
@@ -387,22 +388,24 @@ class _HomeScreenState extends State<HomeScreen> {
     if (isExit) {
       Navigator.pushNamed(context, routeName).then((result) {
         if (routeName == '/starTrip' && result == true) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('DAY START SUCCESSFULLY'),
-              duration: Duration(seconds: 15),
-              behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 2 - 30),
-            ),
+          Fluttertoast.showToast(
+              msg: "DAY START SUCCESSFULLY",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.TOP,
+              timeInSecForIosWeb: 15,
+              backgroundColor: Colors.green,
+              textColor: Colors.white,
+              fontSize: 14.0
           );
         } else if (routeName == '/checkoutDayLog' && result == true) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('DAY END SUCCESSFULLY'),
-              duration: Duration(seconds: 5),
-              behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 2 - 30),
-            ),
+          Fluttertoast.showToast(
+              msg: "DAY END SUCCESSFULLY",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.TOP,
+              timeInSecForIosWeb: 5,
+              backgroundColor: Colors.green,
+              textColor: Colors.white,
+              fontSize: 14.0
           );
         }
       });
